@@ -1,14 +1,20 @@
 @echo off
 
-set "myGamesPath=%USERPROFILE%\Documents\My Games\Terraria"
+
+for /f usebackq %%a in (
+    `powershell -command "[Environment]::GetFolderPath('Personal')"`
+) do (set "docs_folder=%%a")
+echo %docs_folder%
+
+set "myGamesPath=%docs_folder%\My Games\Terraria"
 
 REM if terraria folder isn't found, check for Onedrive folder
 IF NOT EXIST "%myGamesPath%" (
-    set "myGamesPath=%USERPROFILE%\OneDrive\Documents\My Games\Terraria"
+    set "myGamesPath=%OneDriveConsumer%\Documents\My Games\Terraria"
 )
 REM if folder still isn't found, exit
 IF NOT EXIST "%myGamesPath%" (
-    ECHO Terraria folder not found at "%USERPROFILE%\Documents\My Games\Terraria" or "%USERPROFILE%\OneDrive\Documents\My Games\Terraria"
+    ECHO Terraria folder not found at "%docs_folder%\My Games\Terraria" or "%OneDriveConsumer%\Documents\My Games\Terraria"
     pause
     exit
 )
