@@ -1,23 +1,53 @@
 @echo off
 
+set "gameSubDir=My Games\Terraria"
 
+REM Documents\My Games\Terraria 
 for /f usebackq %%a in (
     `powershell -command "[Environment]::GetFolderPath('Personal')"`
 ) do (set "docs_folder=%%a")
-echo %docs_folder%
 
-set "myGamesPath=%docs_folder%\My Games\Terraria"
+set "myGamesPath=%docs_folder%\%gameSubDir%"
 
 REM if terraria folder isn't found, check for Onedrive folder
 IF NOT EXIST "%myGamesPath%" (
-    set "myGamesPath=%OneDriveConsumer%\Documents\My Games\Terraria"
-)
-REM if folder still isn't found, exit
-IF NOT EXIST "%myGamesPath%" (
-    ECHO Terraria folder not found at "%docs_folder%\My Games\Terraria" or "%OneDriveConsumer%\Documents\My Games\Terraria"
+    setlocal enableDelayedExpansion
+    set "foundPath="
+
+    REM Check for OneDriveConsumer variable
+    if not defined OneDriveConsumer (
+        echo The environment variable %%OneDriveConsumer%% is not defined.
+        pause
+        exit
+    )
+
+    echo Looking for "%gameSubDir%" in subdirectories:
+    echo %OneDriveConsumer%\*
+
+    REM Check all directories in %OneDriveConsumer% for the presense of "My Games\Terraria"
+    for /D %%d in ("%OneDriveConsumer%\*") do (
+        
+        set "targetPath=%%d\%gameSubDir%"
+
+        REM Check if path exists
+        if exist "!targetPath!" (
+            set "foundPath=!targetPath!"
+            goto FOUND
+        )
+    )
+
+    :NOT_FOUND
+    REM if folder still isn't found, exit
+    ECHO Terraria folder not found at "%docs_folder%\%gameSubDir%" or "%OneDriveConsumer%\*\%gameSubDir%"
     pause
+    endlocal
     exit
+
+    :FOUND
+    echo Found
+    endlocal & set "myGamesPath=%foundPath%"
 )
+
 ECHO My Games Path: %myGamesPath%
 
 set "file1=%myGamesPath%\config.json"
